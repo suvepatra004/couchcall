@@ -13,7 +13,7 @@ function overlay(title, body, extra = "") {
   return d;
 }
 const fatal = (t, b) => {
-  overlay(t, b, '<a class="btn ghost" href="/">Home</a>');
+  overlay(t, b, '<a class="button button--secondary" href="/">Home</a>');
   throw new Error(t);
 };
 let errShown = false;
@@ -70,7 +70,8 @@ let api,
   myName = "",
   tile = true,
   lite = false,
-  started = false;
+  started = false,
+  watchPausedByUser = false;
 const box = $("#jitsi"),
   work = $("#work"),
   vid = $("#vid");
@@ -163,21 +164,7 @@ function init(d) {
       enableClosePage: false,
       subject: room,
       disabledSounds: ["INCOMING_MSG_SOUND"], // we play our own pop instead
-      toolbarButtons: [
-        "microphone",
-        "camera",
-        "desktop",
-        "fullscreen",
-        "hangup",
-        "raisehand",
-        "participants-pane",
-        "tileview",
-        "select-background",
-        "settings",
-        "shortcuts",
-        "security",
-        "noisesuppression",
-      ],
+      toolbarButtons: ["microphone", "camera"],
     },
     interfaceConfigOverwrite: {
       SHOW_JITSI_WATERMARK: false,
@@ -193,7 +180,7 @@ function init(d) {
     const o = overlay(
       "You left the room",
       "Rejoin the same room or start a new one.",
-      '<button class="btn" id="rj">Rejoin</button><a class="btn ghost" href="/">Home</a>',
+      '<button class="button button--primary" id="rj">Rejoin</button><a class="button button--secondary" href="/">Home</a>',
     );
     o.querySelector("#rj").onclick = () => location.reload();
   });
@@ -247,10 +234,19 @@ $("#lite").onclick = (e) => {
 };
 $("#leave").onclick = () =>
   api ? api.executeCommand("hangup") : (location.href = "/");
-const theater = (on) => document.body.classList.toggle("theater", on);
-const watching = (on) => {
+const theater = (on) => {
+  const wasTheater = document.body.classList.contains("theater");
+  document.body.classList.toggle("theater", on);
+  $("#exit").hidden = !on;
+  if (wasTheater && !on) watching(false);
+};
+const watching = (on, fromRemote = false) => {
+  if (fromRemote && watchPausedByUser) return;
+  const wasWatching = document.body.classList.contains("watching");
+  if (!fromRemote) watchPausedByUser = !on;
   document.body.classList.toggle("watching", on);
   $("#watch").classList.toggle("on", on);
+  if (wasWatching && !on) pauseLocalMedia();
 };
 $("#theater").onclick = () => {
   watching(true);
@@ -259,6 +255,9 @@ $("#theater").onclick = () => {
 $("#exit").onclick = () => theater(false);
 $("#watch").onclick = () =>
   watching(!document.body.classList.contains("watching"));
+$("#jlayout").onclick = () => api?.executeCommand("toggleTileView");
+$("#jleave").onclick = () =>
+  api ? api.executeCommand("hangup") : (location.href = "/");
 addEventListener("keydown", (e) => {
   if (e.key === "Escape") theater(false);
 });
@@ -367,6 +366,9 @@ const P = {
   pause: () => (cur?.k === "yt" ? yt?.pauseVideo() : vid.pause()),
   playing: () => (cur?.k === "yt" ? yt?.getPlayerState?.() === 1 : !vid.paused),
 };
+function pauseLocalMedia() {
+  if (cur) quiet(() => P.pause());
+}
 const show = (k) => {
   $("#empty").hidden = !!k;
   $("#ytwrap").hidden = k !== "yt";
@@ -403,8 +405,12 @@ function loadYT(id, time = 0, playing = true) {
       events: {
         onStateChange: (e) => {
           if (mute) return;
-          if (e.data === 1) send({ t: "play", time: P.time() });
-          if (e.data === 2) send({ t: "pause", time: P.time() });
+          if (e.data === 1) {
+            watchPausedByUser = false;
+            send({ t: "play", time: P.time() });
+          }
+          if (e.data === 2 && !watchPausedByUser)
+            send({ t: "pause", time: P.time() });
         },
         onError: () => toast("This video can't be embedded. Try another link."),
       },
@@ -458,8 +464,16 @@ $("#file").onchange = (e) => {
     toast("Local file loaded – friends open the same file");
   }
 };
-vid.onplay = () => !mute && send({ t: "play", time: vid.currentTime });
-vid.onpause = () => !mute && send({ t: "pause", time: vid.currentTime });
+vid.onplay = () => {
+  if (!mute) {
+    watchPausedByUser = false;
+    send({ t: "play", time: vid.currentTime });
+  }
+};
+vid.onpause = () =>
+  !mute &&
+  !watchPausedByUser &&
+  send({ t: "pause", time: vid.currentTime });
 vid.onseeked = () => !mute && send({ t: "seek", time: vid.currentTime });
 vid.onerror = () => {
   if (vid.getAttribute("src"))
@@ -497,7 +511,8 @@ urlIn.addEventListener("pointerdown", () => setTimeout(() => urlIn.focus(), 0));
 
 function recv(m) {
   if (m.t === "fx") return burst(m.e);
-  watching(true); // when anyone starts a video, everyone's view switches to the player
+  if (watchPausedByUser) return;
+  watching(true, true);
   quiet(() => {
     if (m.t === "load") loadMedia(m.k, m.v, m.time, m.playing);
     if (m.time != null && cur && Math.abs(P.time() - m.time) > 1.5)

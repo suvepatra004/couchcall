@@ -35,7 +35,7 @@ const hhmm = (d) =>
 
 export function initChat({ send, myName }) {
   $("#emo").innerHTML = EMOJI.map(
-    (e) => `<button type="button">${e}</button>`,
+    (e) => `<button class="button button--emoji" type="button">${e}</button>`,
   ).join("");
   const sync = () => {
     $("#snd").textContent = muted ? "🔕" : "🔔";

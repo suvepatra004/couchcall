@@ -51,60 +51,86 @@ input:focus {
   border-color: var(--pk);
   outline: none;
 }
-/* buttons: small rounded corners, thin border, flat */
-.btn,
-.chip {
-  border-radius: var(--r);
-  border: 1px solid var(--ln);
+/* Shared, square-corner button components. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font: inherit;
+  font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
   transition:
     background 0.12s,
     border-color 0.12s,
     transform 0.08s;
 }
-.btn {
+.button--primary {
   background: var(--pk);
   color: #2a0f1e;
   border-color: var(--pk);
-  padding: 0.6rem 1.1rem;
-  font-weight: 700;
-  display: inline-block;
-  white-space: nowrap;
 }
-.btn:hover {
+.button--primary:hover {
   filter: brightness(1.08);
 }
-.btn:active {
+.button:active {
   transform: scale(0.97);
 }
-.btn.ghost {
+.button--secondary {
+  background: var(--sf);
+  color: var(--tx);
+  border-color: var(--ln);
+}
+.button--secondary:hover {
+  border-color: var(--pk);
+}
+.button--quiet {
   background: transparent;
   color: var(--tx);
   border-color: var(--ln);
 }
-.btn.ghost:hover {
-  border-color: var(--pk);
-}
-.chip {
-  background: transparent;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.88rem;
-}
-.chip:hover {
+.button--quiet:hover {
   border-color: var(--pk);
   background: #ffffff0a;
 }
-.chip.on {
+.button--danger {
+  background: #e5484d1f;
+  color: #ff9a9d;
+  border-color: #e5484d;
+}
+.button--danger:hover {
+  background: #e5484d;
+  color: #fff;
+}
+.button.on {
   background: var(--pk);
   color: #2a0f1e;
   border-color: var(--pk);
 }
-.chip.danger:hover {
-  background: #e5484d;
-  border-color: #e5484d;
-  color: #fff;
+.button--small {
+  min-height: 30px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.85rem;
 }
-.chip b {
+.button--emoji {
+  width: 100%;
+  min-height: 34px;
+  padding: 0.15rem;
+  border: 0;
+  background: transparent;
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+.button--emoji:hover {
+  background: #ffffff14;
+}
+.button--quiet b {
   background: var(--sk);
   color: #06222d;
   border-radius: 6px;
@@ -312,9 +338,15 @@ body.watching #jhead {
   margin-left: 0.4rem;
   font-size: 0.75rem;
 }
-#jhead .chip {
-  padding: 0 0.5rem;
-  line-height: 1.3;
+#jhead .floating-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+#jhead .button {
+  min-height: 30px;
+  padding: 0.2rem 0.55rem;
+  line-height: 1;
 }
 body.watching #grip {
   display: block;
@@ -336,10 +368,13 @@ body.watching #grip {
 }
 /* minimized: round avatar bubble */
 body.watching #jitsi.min {
-  width: 60px;
-  height: 60px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   border: 2px solid var(--pk);
+  box-shadow:
+    0 0 0 4px #15121f,
+    0 8px 24px #000c;
 }
 body.watching #jitsi.min #jhead,
 body.watching #jitsi.min #grip {
@@ -352,18 +387,22 @@ body.watching #jitsi.min #jframe {
 body.watching #jitsi.min #bubble {
   display: grid;
 }
-#bubble {
+.button--avatar {
   position: absolute;
   inset: 0;
+  min-height: 0;
+  padding: 0;
   place-items: center;
   border: 0;
   background: var(--av, #3f8a67);
   color: #fff;
   font-size: 1.5rem;
   font-weight: 700;
+  border-radius: 50%;
   cursor: grab;
   touch-action: none;
   user-select: none;
+  box-shadow: inset 0 0 0 1px #ffffff40;
 }
 #bubble b {
   position: absolute;
@@ -409,20 +448,6 @@ body.watching #player {
 }
 .pbar #url {
   flex: 1;
-}
-#exit {
-  display: none;
-  white-space: nowrap;
-}
-body.theater #exit {
-  display: inline-block;
-  background: #e5484d1f;
-  border-color: #e5484d;
-  color: #ff9a9d;
-}
-body.theater #exit:hover {
-  background: #e5484d;
-  color: #fff;
 }
 #screen {
   flex: 1;
@@ -523,17 +548,6 @@ body.theater #exit:hover {
   max-height: 9.5rem;
   overflow: auto;
 }
-#emo button {
-  background: none;
-  border: 0;
-  font-size: 1.3rem;
-  cursor: pointer;
-  border-radius: 6px;
-  padding: 0.15rem;
-}
-#emo button:hover {
-  background: #ffffff14;
-}
 #cf {
   display: flex;
   gap: 0.4rem;
@@ -577,11 +591,15 @@ body.theater #exit:hover {
     width: min(320px, 92%);
   }
   body.watching #jitsi {
-    --fw: 200px;
+    --fw: min(260px, calc(100vw - 28px));
     --fh: 150px;
   }
   #jhead i {
     display: none;
+  }
+  #jhead .button {
+    padding-inline: 0.4rem;
+    font-size: 0.75rem;
   }
   .pbar {
     flex-wrap: wrap;

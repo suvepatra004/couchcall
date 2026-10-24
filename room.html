@@ -19,53 +19,57 @@
         maxlength="40"
         required
         aria-label="Your name"
-      /><button class="btn">Join room</button>
+      /><button class="button button--primary" type="submit">Join room</button>
     </form>
 
     <div id="app" hidden>
       <header id="bar">
         <a class="logo" href="/" title="Home">🛋️ Couchcall</a>
-        <button class="chip code" id="code" title="Copy room code">
+        <button class="button button--quiet code" id="code" type="button" title="Copy room code">
           <span id="rn"></span> 📋
         </button>
-        <button class="chip" id="copy" title="Copy invite link">
+        <button class="button button--quiet" id="copy" type="button" title="Copy invite link">
           🔗 Invite
         </button>
         <button
-          class="chip"
+          class="button button--quiet"
           id="layout"
+          type="button"
           title="Switch between grid and speaker view"
         >
           ▦ Layout
         </button>
         <button
-          class="chip"
+          class="button button--quiet"
           id="theater"
+          type="button"
           title="Hide the toolbar for a bigger screen"
         >
           🎬 Theater
         </button>
         <button
-          class="chip"
+          class="button button--quiet"
           id="lite"
+          type="button"
           title="Lower video quality to save internet data. Turn on if video lags."
         >
           📶 Low data
         </button>
         <button
-          class="chip"
+          class="button button--quiet"
           id="watch"
+          type="button"
           title="Show or hide the shared video player"
         >
           🍿 Watch
         </button>
-        <button class="chip" id="chatb" title="Chat">
+        <button class="button button--quiet" id="chatb" type="button" title="Chat">
           💬 Chat <b id="unread" hidden>0</b>
         </button>
-        <button class="chip fxb" data-e="🎉">🎉</button
-        ><button class="chip fxb" data-e="😂">😂</button
-        ><button class="chip fxb" data-e="🔥">🔥</button>
-        <button class="chip danger" id="leave">Leave</button>
+        <button class="button button--quiet fxb" data-e="🎉" type="button">🎉</button
+        ><button class="button button--quiet fxb" data-e="😂" type="button">😂</button
+        ><button class="button button--quiet fxb" data-e="🔥" type="button">🔥</button>
+        <button class="button button--danger" id="leave" type="button">Leave</button>
       </header>
 
       <main id="stage">
@@ -79,24 +83,25 @@
                 autocomplete="off"
               />
               <button
-                class="btn ghost"
+                class="button button--secondary"
                 id="pastebtn"
                 type="button"
                 title="Paste from clipboard"
               >
                 📋 Paste
               </button>
-              <button class="btn" id="load" type="button">Load</button>
+              <button class="button button--primary" id="load" type="button">Load</button>
               <button
-                class="chip danger"
+                class="button button--danger"
                 id="exit"
                 type="button"
+                hidden
                 title="Show the toolbar again (Esc)"
               >
                 ✕ Exit theater
               </button>
               <label
-                class="btn ghost"
+                class="button button--secondary"
                 for="file"
                 title="Everyone opens the same file on their own device"
                 >📁 Local file</label
@@ -119,12 +124,21 @@
           <section id="jitsi" aria-label="Video call">
             <div id="jhead">
               <span>Video call <i>Drag to move</i></span
-              ><button class="chip" id="jmin" type="button" title="Minimize">
-                –
-              </button>
+              ><span class="floating-actions">
+                <button class="button button--quiet button--small" id="jlayout" type="button">
+                  Layout
+                </button>
+                <button class="button button--danger button--small" id="jleave" type="button">
+                  Leave
+                </button>
+                <button class="button button--quiet button--small" id="jmin" type="button" title="Minimize">
+                  –
+                </button>
+              </span>
             </div>
             <div id="jframe"></div>
             <button
+              class="button button--avatar"
               id="bubble"
               type="button"
               aria-label="Restore video call"
@@ -141,14 +155,14 @@
             <b>💬 Chat</b
             ><span
               ><button
-                class="chip"
+                class="button button--quiet button--small"
                 id="snd"
                 type="button"
                 title="Message sound on/off"
               >
                 🔔</button
               ><button
-                class="chip"
+                class="button button--quiet button--small"
                 id="cx"
                 type="button"
                 aria-label="Close chat"
@@ -162,14 +176,14 @@
           </div>
           <div id="emo" hidden></div>
           <form id="cf">
-            <button type="button" class="chip" id="eb" aria-label="Emoji">
+            <button type="button" class="button button--quiet" id="eb" aria-label="Emoji">
               😊</button
             ><input
               id="ci"
               placeholder="Type a message…"
               maxlength="500"
               autocomplete="off"
-            /><button class="btn">Send</button>
+            /><button class="button button--primary" type="submit">Send</button>
           </form>
         </aside>
       </main>
