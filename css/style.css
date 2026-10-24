@@ -216,7 +216,7 @@ h1 {
   left: 50%;
   transform: translateX(-50%);
   background: var(--sf);
-  border: 1px solid var(--pk);
+  border: 0px solid var(--pk);
   border-radius: var(--r);
   padding: 0.5rem 0.9rem;
   z-index: 60;
