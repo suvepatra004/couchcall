@@ -1,27 +1,125 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Couchcall room</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛋️%3C/text%3E%3C/svg%3E">
-<link rel="stylesheet" href="/css/style.css"></head>
-<body class="room">
-<form id="gate"><h2>Almost in 👋</h2><input id="gname" placeholder="Your name" maxlength="40" required aria-label="Your name"><button class="btn">Join room</button></form>
-<div id="app" hidden>
-<header id="bar">
-<a class="logo" href="/" title="Tip: hold Space to talk when muted">🛋️ Couchcall<small id="rn"></small></a>
-<button class="chip" id="copy" title="Copy invite link">🔗 Invite</button>
-<button class="chip" id="layout" title="Switch tile / focus view">▦ Layout</button>
-<button class="chip" id="theater" title="Hide the toolbar">🎬 Theater</button>
-<button class="chip" id="lite" title="Lower video quality to save bandwidth">🐢 Lite</button>
-<button class="chip" id="watch" title="Synced video player">🍿 Watch</button>
-<button class="chip fxb" data-e="🎉">🎉</button><button class="chip fxb" data-e="😂">😂</button><button class="chip fxb" data-e="🔥">🔥</button>
-<button class="chip" id="leave">Leave</button>
-</header>
-<button class="chip" id="exit" hidden>Exit theater</button>
-<main><div id="jitsi"></div>
-<aside id="player" hidden>
-<div class="row"><input id="url" placeholder="Direct video link (.mp4 / .webm)"><button class="btn ghost" id="load">Load</button></div>
-<video id="vid" controls playsinline></video>
-<div><div class="row"><label class="btn ghost" for="file">📁 Local file</label><input id="file" type="file" accept="video/*" hidden></div>
-<small>Local file: everyone opens their own copy of the same file. Play, pause and seek stay in sync.</small></div>
-</aside></main></div>
-<script type="module" src="/js/room.js"></script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Couchcall room</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛋️%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="room">
+    <form id="gate">
+      <h2>Almost in 👋</h2>
+      <input
+        id="gname"
+        placeholder="Your name"
+        maxlength="40"
+        required
+        aria-label="Your name"
+      />
+      <button class="btn" type="submit">Join room</button>
+    </form>
+
+    <div id="app" hidden>
+      <header id="bar">
+        <a class="logo" href="/" title="Tip: hold Space to talk when muted">
+          🛋️ Couchcall <small id="rn"></small>
+        </a>
+        <button class="chip code" id="code" type="button" title="Copy room code">
+          Room code
+        </button>
+        <button class="chip" id="copy" type="button" title="Copy invite link">
+          🔗 Invite
+        </button>
+        <button class="chip" id="layout" type="button" title="Switch tile / focus view">
+          ▦ Layout
+        </button>
+        <button class="chip" id="theater" type="button" title="Hide the toolbar">
+          🎬 Theater
+        </button>
+        <button
+          class="chip"
+          id="lite"
+          type="button"
+          title="Lower video quality to save bandwidth"
+        >
+          🐢 Lite
+        </button>
+        <button class="chip" id="watch" type="button" title="Synced video player">
+          🍿 Watch
+        </button>
+        <button class="chip" id="chatb" type="button" title="Open chat">
+          💬 Chat <b id="unread" hidden>0</b>
+        </button>
+        <button class="chip fxb" data-e="🎉" type="button" aria-label="Send celebration">
+          🎉
+        </button>
+        <button class="chip fxb" data-e="😂" type="button" aria-label="Send laughing reaction">
+          😂
+        </button>
+        <button class="chip fxb" data-e="🔥" type="button" aria-label="Send fire reaction">
+          🔥
+        </button>
+        <button class="chip" id="leave" type="button">Leave</button>
+      </header>
+
+      <button class="chip" id="exit" type="button" hidden>Exit theater</button>
+
+      <main id="stage">
+        <section id="jitsi" aria-label="Video call">
+          <header id="jhead">
+            <span>Video call <i>Drag to move</i></span>
+            <button class="chip" id="jmin" type="button" aria-label="Minimize video call">
+              –
+            </button>
+          </header>
+          <div id="jframe"></div>
+          <div id="grip" aria-hidden="true"></div>
+        </section>
+
+        <aside id="player" aria-label="Shared video player">
+          <div class="pbar">
+            <input
+              id="url"
+              placeholder="YouTube or direct video link"
+              aria-label="Video URL"
+            />
+            <button class="btn ghost" id="load" type="button">Load</button>
+            <label class="btn ghost" for="file">📁 Local file</label>
+            <input id="file" type="file" accept="video/*" hidden />
+          </div>
+          <div id="screen">
+            <div id="empty">Load a YouTube link or direct video URL to watch together.</div>
+            <div id="ytwrap" hidden><div id="yt"></div></div>
+            <video id="vid" controls playsinline hidden></video>
+          </div>
+          <small id="note">
+            Local files play from each person’s device. Use only content you have permission to watch.
+          </small>
+        </aside>
+
+        <aside id="chat" aria-label="Room chat" hidden>
+          <header>
+            <strong>Room chat</strong>
+            <button class="chip" id="cx" type="button" aria-label="Close chat">✕</button>
+          </header>
+          <div id="msgs" aria-live="polite">
+            <p class="hint">Messages from this call will appear here.</p>
+          </div>
+          <div id="emo" hidden></div>
+          <form id="cf">
+            <button class="chip" id="eb" type="button" aria-label="Choose emoji">😊</button>
+            <input id="ci" placeholder="Write a message" aria-label="Chat message" />
+            <button class="btn" type="submit">Send</button>
+          </form>
+        </aside>
+      </main>
+    </div>
+
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="/js/room.js"></script>
+  </body>
+</html>

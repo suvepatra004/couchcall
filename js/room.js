@@ -8,7 +8,8 @@ let api,
   myName = "",
   tile = true,
   lite = false,
-  unread = 0;
+  unread = 0,
+  starting = false;
 $("#rn").textContent = room;
 document.title = `${room} · Couchcall`;
 
@@ -40,7 +41,8 @@ const fail = (m) => {
 };
 
 async function start(name) {
-  if (!name) return;
+  if (!name || starting || api) return;
+  starting = true;
   myName = name;
   localStorage.setItem("name", name);
   $("#gate").hidden = true;
