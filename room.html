@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Couchcall room</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛋️%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/css/style.css"></head>
+<body class="room">
+<form id="gate"><h2>Almost in 👋</h2><input id="gname" placeholder="Your name" maxlength="40" required aria-label="Your name"><button class="btn">Join room</button></form>
+<div id="app" hidden>
+<header id="bar">
+<a class="logo" href="/" title="Tip: hold Space to talk when muted">🛋️ Couchcall<small id="rn"></small></a>
+<button class="chip" id="copy" title="Copy invite link">🔗 Invite</button>
+<button class="chip" id="layout" title="Switch tile / focus view">▦ Layout</button>
+<button class="chip" id="theater" title="Hide the toolbar">🎬 Theater</button>
+<button class="chip" id="lite" title="Lower video quality to save bandwidth">🐢 Lite</button>
+<button class="chip" id="watch" title="Synced video player">🍿 Watch</button>
+<button class="chip fxb" data-e="🎉">🎉</button><button class="chip fxb" data-e="😂">😂</button><button class="chip fxb" data-e="🔥">🔥</button>
+<button class="chip" id="leave">Leave</button>
+</header>
+<button class="chip" id="exit" hidden>Exit theater</button>
+<main><div id="jitsi"></div>
+<aside id="player" hidden>
+<div class="row"><input id="url" placeholder="Direct video link (.mp4 / .webm)"><button class="btn ghost" id="load">Load</button></div>
+<video id="vid" controls playsinline></video>
+<div><div class="row"><label class="btn ghost" for="file">📁 Local file</label><input id="file" type="file" accept="video/*" hidden></div>
+<small>Local file: everyone opens their own copy of the same file. Play, pause and seek stay in sync.</small></div>
+</aside></main></div>
+<script type="module" src="/js/room.js"></script></body></html>
