@@ -6,8 +6,7 @@
   --mu: #a69cc2;
   --pk: #ff7ab8;
   --sk: #62d4ff;
-  --r: 14px;
-  --sh: 3px 3px 0 var(--ln);
+  --r: 8px;
   font-family:
     ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, sans-serif;
 }
@@ -31,51 +30,86 @@ input {
   color: inherit;
 }
 :focus-visible {
-  outline: 3px solid var(--sk);
+  outline: 2px solid var(--sk);
   outline-offset: 2px;
 }
 [hidden] {
   display: none !important;
 }
-input[type="text"],
-input:not([type]) {
+input:not([type]),
+input[type="text"] {
   background: var(--bg);
-  border: 2px solid var(--ln);
+  border: 1px solid var(--ln);
   border-radius: var(--r);
-  padding: 0.7rem 0.9rem;
+  padding: 0.6rem 0.8rem;
   width: 100%;
+  min-width: 0;
 }
 input:focus {
   border-color: var(--pk);
+  outline: none;
+}
+/* buttons: small rounded corners, thin border, flat */
+.btn,
+.chip {
+  border-radius: var(--r);
+  border: 1px solid var(--ln);
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    transform 0.08s;
 }
 .btn {
   background: var(--pk);
   color: #2a0f1e;
-  border: 2px solid #2a0f1e;
-  border-radius: var(--r);
-  padding: 0.7rem 1.2rem;
+  border-color: var(--pk);
+  padding: 0.6rem 1.1rem;
   font-weight: 700;
-  cursor: pointer;
-  box-shadow: 3px 3px 0 #2a0f1e;
-  transition:
-    transform 0.08s,
-    box-shadow 0.08s;
   display: inline-block;
+  white-space: nowrap;
 }
 .btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #2a0f1e;
+  filter: brightness(1.08);
 }
 .btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 #2a0f1e;
+  transform: scale(0.97);
 }
 .btn.ghost {
-  background: var(--sf);
+  background: transparent;
   color: var(--tx);
   border-color: var(--ln);
-  box-shadow: var(--sh);
 }
+.btn.ghost:hover {
+  border-color: var(--pk);
+}
+.chip {
+  background: transparent;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.88rem;
+}
+.chip:hover {
+  border-color: var(--pk);
+  background: #ffffff0a;
+}
+.chip.on {
+  background: var(--pk);
+  color: #2a0f1e;
+  border-color: var(--pk);
+}
+.chip.danger:hover {
+  background: #e5484d;
+  border-color: #e5484d;
+}
+.chip b {
+  background: var(--sk);
+  color: #06222d;
+  border-radius: 6px;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  margin-left: 0.2rem;
+}
+/* landing */
 .home {
   display: grid;
   place-items: center;
@@ -84,10 +118,9 @@ input:focus {
 .card {
   width: min(520px, 100%);
   background: var(--sf);
-  border: 2px solid var(--ln);
-  border-radius: 22px;
+  border: 1px solid var(--ln);
+  border-radius: 14px;
   padding: clamp(1.2rem, 4vw, 2.2rem);
-  box-shadow: 6px 6px 0 var(--ln);
   display: grid;
   gap: 1rem;
 }
@@ -95,7 +128,6 @@ h1 {
   margin: 0;
   font-size: clamp(2rem, 6vw, 2.8rem);
   letter-spacing: -0.02em;
-  transform: rotate(-1.5deg);
 }
 .sub {
   margin: 0;
@@ -119,7 +151,7 @@ h1 {
   justify-items: center;
   text-align: center;
   padding: 0.8rem 0.4rem;
-  border: 2px solid var(--ln);
+  border: 1px solid var(--ln);
   border-radius: var(--r);
   cursor: pointer;
   font-size: 1.6rem;
@@ -135,11 +167,10 @@ h1 {
 }
 .modes input:checked + span {
   border-color: var(--pk);
-  box-shadow: var(--sh);
-  background: var(--bg);
+  background: #ff7ab814;
 }
 .modes input:focus-visible + span {
-  outline: 3px solid var(--sk);
+  outline: 2px solid var(--sk);
 }
 .or {
   text-align: center;
@@ -156,11 +187,12 @@ h1 {
   left: 50%;
   transform: translateX(-50%);
   background: var(--sf);
-  border: 2px solid var(--pk);
+  border: 1px solid var(--pk);
   border-radius: var(--r);
-  padding: 0.6rem 1rem;
-  z-index: 50;
+  padding: 0.5rem 0.9rem;
+  z-index: 60;
 }
+/* room shell */
 .room {
   display: flex;
   flex-direction: column;
@@ -172,10 +204,9 @@ h1 {
   display: grid;
   gap: 0.8rem;
   background: var(--sf);
-  border: 2px solid var(--ln);
-  border-radius: 22px;
+  border: 1px solid var(--ln);
+  border-radius: 14px;
   padding: 1.6rem;
-  box-shadow: 6px 6px 0 var(--ln);
 }
 #gate h2 {
   margin: 0;
@@ -188,10 +219,10 @@ h1 {
 #bar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.8rem;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
   background: var(--sf);
-  border-bottom: 2px solid var(--ln);
+  border-bottom: 1px solid var(--ln);
   flex-wrap: wrap;
 }
 #bar .logo {
@@ -200,82 +231,244 @@ h1 {
   color: var(--tx);
   margin-right: auto;
 }
-#bar .logo small {
-  font-weight: 500;
-  color: var(--mu);
-  margin-left: 0.5rem;
+.code {
+  font-family: ui-monospace, Menlo, monospace;
+  border-style: dashed;
 }
-.chip {
-  background: var(--bg);
-  border: 2px solid var(--ln);
-  border-radius: 999px;
-  padding: 0.3rem 0.75rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-.chip:hover {
-  border-color: var(--pk);
-}
-.chip.on {
-  background: var(--pk);
-  color: #2a0f1e;
-  border-color: #2a0f1e;
-}
-main {
+#stage {
+  position: relative;
   flex: 1;
   display: flex;
   min-height: 0;
 }
-#jitsi {
-  flex: 1;
-  min-width: 0;
-  background: #000;
-}
-#jitsi iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-#jitsi .err {
-  padding: 2rem;
-  color: var(--pk);
-}
-#player {
-  width: min(46%, 720px);
+#exit {
+  position: fixed;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  z-index: 30;
   background: var(--sf);
-  border-left: 2px solid var(--ln);
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 0.6rem;
-  padding: 0.7rem;
+  opacity: 0.7;
 }
-#player video {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  background: #000;
-  border-radius: var(--r);
-}
-#player .row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-#player small {
-  color: var(--mu);
+#exit:hover {
+  opacity: 1;
 }
 body.theater #bar {
   display: none;
 }
-#exit {
-  position: fixed;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 20;
-  opacity: 0.6;
+/* faces (Jitsi) – fills the stage normally, floats while watching */
+#jitsi {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
 }
-#exit:hover {
-  opacity: 1;
+#jframe {
+  flex: 1;
+  min-height: 0;
+}
+#jframe iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+#jframe .err {
+  padding: 2rem;
+  color: var(--pk);
+}
+#jhead,
+#grip {
+  display: none;
+}
+body.watching #jitsi {
+  position: absolute;
+  z-index: 10;
+  flex: none;
+  left: var(--fl, auto);
+  top: var(--ft, auto);
+  right: var(--fr, 14px);
+  bottom: var(--fb, 14px);
+  width: var(--fw, 420px);
+  height: var(--fh, 300px);
+  border: 1px solid var(--ln);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px #000a;
+}
+body.watching #jitsi.min {
+  height: 34px;
+}
+body.watching #jhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.3rem 0 0.6rem;
+  height: 34px;
+  background: var(--sf);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  font-size: 0.85rem;
+}
+#jhead i {
+  font-style: normal;
+  color: var(--mu);
+  margin-left: 0.4rem;
+  font-size: 0.75rem;
+}
+#jhead .chip {
+  padding: 0 0.5rem;
+  line-height: 1.3;
+}
+body.watching #grip {
+  display: block;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background: linear-gradient(
+    135deg,
+    transparent 55%,
+    var(--mu) 55% 62%,
+    transparent 62% 75%,
+    var(--mu) 75% 82%,
+    transparent 82%
+  );
+}
+body.watching #jitsi.min #grip {
+  display: none;
+}
+body.drag #jframe iframe,
+body.drag #ytwrap {
+  pointer-events: none;
+}
+body.drag {
+  user-select: none;
+}
+/* player */
+#player {
+  display: none;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem;
+}
+body.watching #player {
+  display: flex;
+}
+.pbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+#screen {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+}
+#screen > * {
+  grid-area: 1/1;
+  width: 100%;
+  height: 100%;
+}
+#ytwrap iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+#empty {
+  margin: auto;
+  max-width: 34ch;
+  text-align: center;
+  color: var(--mu);
+  padding: 1rem;
+  height: auto;
+}
+#note {
+  color: var(--mu);
+}
+/* chat */
+#chat {
+  width: min(320px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--sf);
+  border-left: 1px solid var(--ln);
+  z-index: 12;
+}
+#chat > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--ln);
+}
+#msgs {
+  flex: 1;
+  overflow: auto;
+  padding: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.hint {
+  color: var(--mu);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0;
+}
+.m {
+  max-width: 85%;
+  padding: 0.4rem 0.65rem;
+  border-radius: 10px 10px 10px 3px;
+  background: var(--bg);
+  align-self: flex-start;
+  word-break: break-word;
+}
+.m.me {
+  align-self: flex-end;
+  background: var(--pk);
+  color: #2a0f1e;
+  border-radius: 10px 10px 3px 10px;
+}
+.m b {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+#emo {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  padding: 0.4rem;
+  border-top: 1px solid var(--ln);
+  max-height: 9.5rem;
+  overflow: auto;
+}
+#emo button {
+  background: none;
+  border: 0;
+  font-size: 1.3rem;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0.15rem;
+}
+#emo button:hover {
+  background: #ffffff14;
+}
+#cf {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border-top: 1px solid var(--ln);
 }
 .fx {
   position: fixed;
@@ -292,15 +485,6 @@ body.theater #bar {
   }
 }
 @media (max-width: 800px) {
-  main {
-    flex-direction: column;
-  }
-  #player {
-    width: 100%;
-    height: 45%;
-    border-left: 0;
-    border-top: 2px solid var(--ln);
-  }
   .modes {
     grid-template-columns: 1fr;
   }
@@ -312,12 +496,28 @@ body.theater #bar {
   .modes i {
     display: none;
   }
+  #chat {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+  }
+  body.watching #jitsi {
+    --fw: 200px;
+    --fh: 150px;
+  }
+  #jhead i {
+    display: none;
+  }
+  .pbar {
+    flex-wrap: wrap;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .fx {
     animation-duration: 0.01s;
   }
-  .btn {
-    transition: none;
+  * {
+    transition: none !important;
   }
 }
