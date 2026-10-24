@@ -1,3 +1,4 @@
+import { initChat } from "./chat.js";
 const $ = (s) => document.querySelector(s);
 
 /* ---------- safety net: visible errors, loop breaker, no auto-navigation ---------- */
@@ -28,8 +29,8 @@ const report = (m) => {
 addEventListener("error", (e) => report(e.message));
 addEventListener("unhandledrejection", (e) => report(String(e.reason)));
 
-// Stop if this page keeps reloading (more than 4 loads in 15 seconds)
 try {
+  // stop if this page reloads more than 4 times in 15 seconds
   const k = "cc-loads",
     n = Date.now(),
     a = JSON.parse(sessionStorage.getItem(k) || "[]").filter(
@@ -46,23 +47,16 @@ try {
   if (e.message === "Stopped a reload loop") throw e;
 }
 
-// Stop if room.html is older than this script
-if (
-  ![
-    "jframe",
-    "code",
-    "chatb",
-    "player",
-    "jitsi",
-    "cf",
-    "emo",
-    "msgs",
-    "ci",
-  ].every((id) => $("#" + id))
-)
+// stop with a clear message if room.html doesn't match this script
+const NEED =
+  "gate gname app rn code copy layout theater lite watch chatb unread leave exit work player url pastebtn load file screen empty ytwrap vid jitsi jhead jmin jframe bubble ini cnt grip chat snd cx msgs emo eb cf ci toast".split(
+    " ",
+  );
+const missing = NEED.filter((id) => !$("#" + id));
+if (missing.length)
   fatal(
     "room.html is outdated",
-    "Replace room.html with the latest version so it matches room.js.",
+    "Replace room.html with the latest version. Missing: " + missing.join(", "),
   );
 
 const q = new URLSearchParams(location.search);
@@ -73,10 +67,13 @@ if (!/^[a-z0-9-]{3,60}$/.test(room))
 
 let api,
   me,
+  myName = "",
   tile = true,
   lite = false,
-  unread = 0,
   started = false;
+const box = $("#jitsi"),
+  work = $("#work"),
+  vid = $("#vid");
 $("#rn").textContent = room;
 document.title = `${room} · Couchcall`;
 
@@ -87,7 +84,7 @@ const toast = (t) => {
   e.textContent = t;
   e.hidden = false;
   clearTimeout(tt);
-  tt = setTimeout(() => (e.hidden = true), 1800);
+  tt = setTimeout(() => (e.hidden = true), 2200);
 };
 const copy = (txt, ok) =>
   navigator.clipboard.writeText(txt).then(
@@ -95,6 +92,14 @@ const copy = (txt, ok) =>
     () => toast("Copy failed – select and copy manually"),
   );
 const link = () => `${location.origin}/room?r=${room}&m=${mode}`;
+const css = (k, v) => box.style.setProperty(k, v);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- chat (see chat.js) ---------- */
+const chat = initChat({
+  send: (t) => api?.executeCommand("sendChatMessage", t),
+  myName: () => myName,
+});
 
 /* ---------- start ---------- */
 $("#gname").value = localStorage.getItem("name") || "";
@@ -102,15 +107,27 @@ $("#gate").onsubmit = (e) => {
   e.preventDefault();
   start($("#gname").value.trim());
 };
-if ($("#gname").value) start($("#gname").value);
 const fail = (m) => {
   $("#jframe").innerHTML = `<p class="err">${m}</p>`;
+};
+
+function setAvatar(name) {
+  // initial + color for the minimized bubble
+  $("#ini").textContent = (name.trim()[0] || "?").toUpperCase();
+  let h = 0;
+  for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
+  css("--av", `hsl(${h} 45% 36%)`);
+}
+const count = () => {
+  $("#cnt").textContent = api ? api.getNumberOfParticipants() || "" : "";
 };
 
 async function start(name) {
   if (!name || started) return;
   started = true;
+  myName = name;
   localStorage.setItem("name", name);
+  setAvatar(name);
   $("#gate").hidden = true;
   $("#app").hidden = false;
   if (mode === "m") watching(true);
@@ -145,7 +162,7 @@ function init(d) {
       enableWelcomePage: false,
       enableClosePage: false,
       subject: room,
-      // our own chat + player replace Jitsi's chat / shared-video buttons
+      disabledSounds: ["INCOMING_MSG_SOUND"], // we play our own pop instead
       toolbarButtons: [
         "microphone",
         "camera",
@@ -167,8 +184,8 @@ function init(d) {
       MOBILE_APP_PROMO: false,
     },
   });
-  // Never navigate automatically: dispose the embed and show a "left" screen instead
   api.addListener("readyToClose", () => {
+    // never navigate automatically
     try {
       api.dispose();
     } catch {}
@@ -183,20 +200,23 @@ function init(d) {
   api.addListener("tileViewChanged", (e) => (tile = e.enabled));
   api.addListener("videoConferenceJoined", (e) => {
     me = e.id;
+    count();
     if (mode === "g") api.executeCommand("setVideoQuality", 360);
   });
   api.addListener("participantJoined", () => {
+    count();
     if (cur) syncState("load");
   });
+  api.addListener("participantLeft", count);
   api.addListener("endpointTextMessageReceived", (e) => {
     try {
       recv(JSON.parse(e.data.eventData.text));
     } catch {}
   });
   api.addListener("incomingMessage", (e) =>
-    addMsg(e.nick || "Friend", e.message, false),
+    chat.add(e.nick || "Friend", e.message, false),
   );
-  api.addListener("outgoingMessage", (e) => addMsg("You", e.message, true));
+  api.addListener("outgoingMessage", (e) => chat.add(myName, e.message, true));
 }
 
 /* messaging between participants (no extra server) */
@@ -219,24 +239,29 @@ $("#lite").onclick = (e) => {
   lite = !lite;
   e.currentTarget.classList.toggle("on", lite);
   api?.executeCommand("setVideoQuality", lite ? 180 : 720);
+  toast(
+    lite
+      ? "Low data on – video quality reduced to save internet"
+      : "Low data off – normal video quality",
+  );
 };
 $("#leave").onclick = () =>
   api ? api.executeCommand("hangup") : (location.href = "/");
-const theater = (on) => {
-  document.body.classList.toggle("theater", on);
-  $("#exit").hidden = !on;
+const theater = (on) => document.body.classList.toggle("theater", on);
+const watching = (on) => {
+  document.body.classList.toggle("watching", on);
+  $("#watch").classList.toggle("on", on);
 };
 $("#theater").onclick = () => {
   watching(true);
   theater(true);
 };
 $("#exit").onclick = () => theater(false);
-const watching = (on) => {
-  document.body.classList.toggle("watching", on);
-  $("#watch").classList.toggle("on", on);
-};
 $("#watch").onclick = () =>
   watching(!document.body.classList.contains("watching"));
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape") theater(false);
+});
 
 /* reactions */
 function burst(em) {
@@ -259,100 +284,64 @@ document.querySelectorAll(".fxb").forEach(
     }),
 );
 
-/* ---------- floating, draggable, resizable faces window ---------- */
-const box = $("#jitsi"),
-  stage = $("#stage");
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-function gesture(handle, onMove) {
+/* ---------- floating call: drag, resize, minimize to avatar bubble ---------- */
+function gesture(handle, onMove, onTap) {
   handle.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("button")) return;
+    const b = e.target.closest("button");
+    if (b && b !== handle) return; // ignore inner buttons
     e.preventDefault();
     handle.setPointerCapture(e.pointerId);
     document.body.classList.add("drag");
     const sx = e.clientX,
       sy = e.clientY,
       r = box.getBoundingClientRect(),
-      s = stage.getBoundingClientRect();
-    const move = (ev) => onMove(ev.clientX - sx, ev.clientY - sy, r, s);
+      s = work.getBoundingClientRect();
+    let moved = false;
+    const move = (ev) => {
+      const dx = ev.clientX - sx,
+        dy = ev.clientY - sy;
+      if (Math.abs(dx) + Math.abs(dy) > 5) moved = true;
+      onMove(dx, dy, r, s);
+    };
     const up = () => {
       handle.removeEventListener("pointermove", move);
       document.body.classList.remove("drag");
+      if (!moved) onTap?.();
     };
     handle.addEventListener("pointermove", move);
     handle.addEventListener("pointerup", up, { once: true });
     handle.addEventListener("pointercancel", up, { once: true });
   });
 }
-const css = (k, v) => box.style.setProperty(k, v);
-gesture($("#jhead"), (dx, dy, r, s) => {
-  css("--fl", clamp(r.left - s.left + dx, 0, s.width - r.width) + "px");
-  css("--ft", clamp(r.top - s.top + dy, 0, s.height - r.height) + "px");
+const dragTo = (dx, dy, r, s) => {
+  css(
+    "--fl",
+    clamp(r.left - s.left + dx, 0, Math.max(0, s.width - r.width)) + "px",
+  );
+  css(
+    "--ft",
+    clamp(r.top - s.top + dy, 0, Math.max(0, s.height - r.height)) + "px",
+  );
   css("--fr", "auto");
   css("--fb", "auto");
-});
+};
+gesture($("#jhead"), dragTo);
+gesture($("#bubble"), dragTo, () => box.classList.remove("min"));
 gesture($("#grip"), (dx, dy, r, s) => {
   css("--fw", clamp(r.width + dx, 220, s.width - (r.left - s.left)) + "px");
   css("--fh", clamp(r.height + dy, 150, s.height - (r.top - s.top)) + "px");
 });
-$("#jmin").onclick = () => {
-  box.classList.toggle("min");
-  $("#jmin").textContent = box.classList.contains("min") ? "+" : "–";
-};
-
-/* ---------- chat ---------- */
-const EMOJI =
-  "😀😂🤣😍😎🥳😭😅😜🤔🙄😴🤯😱😡🥺👍👎👏🙌🙏💪🤝👀🔥💯❤️💔🎉🎮🍿🎬🏆💀👻🤡🍕🍔🍻☕🌈⭐🚀".match(
-    /\p{Extended_Pictographic}(?:\uFE0F)?/gu,
-  ) || [];
-$("#emo").innerHTML = EMOJI.map(
-  (e) => `<button type="button">${e}</button>`,
-).join("");
-$("#emo").onclick = (e) => {
-  if (e.target.tagName === "BUTTON") {
-    $("#ci").value += e.target.textContent;
-    $("#ci").focus();
-  }
-};
-$("#eb").onclick = () => ($("#emo").hidden = !$("#emo").hidden);
-const chatOpen = (on) => {
-  $("#chat").hidden = !on;
-  $("#chatb").classList.toggle("on", on);
-  if (on) {
-    unread = 0;
-    $("#unread").hidden = true;
-    $("#ci").focus();
-  }
-};
-$("#chatb").onclick = () => chatOpen($("#chat").hidden);
-$("#cx").onclick = () => chatOpen(false);
-$("#cf").onsubmit = (e) => {
-  e.preventDefault();
-  const v = $("#ci").value.trim();
-  if (!v || !api) return;
-  api.executeCommand("sendChatMessage", v);
-  $("#ci").value = "";
-};
-function addMsg(who, text, mine) {
-  const m = document.createElement("div");
-  m.className = "m" + (mine ? " me" : "");
-  if (!mine) {
-    const b = document.createElement("b");
-    b.textContent = who;
-    m.append(b);
-  }
-  m.append(document.createTextNode(text));
-  const list = $("#msgs");
-  list.querySelector(".hint")?.remove();
-  list.append(m);
-  list.scrollTop = list.scrollHeight;
-  if (!mine && $("#chat").hidden) {
-    $("#unread").textContent = ++unread;
-    $("#unread").hidden = false;
-  }
-}
+$("#jmin").onclick = () => box.classList.add("min");
+addEventListener("resize", () => {
+  // keep the call inside the video area
+  if (!box.style.getPropertyValue("--fl")) return;
+  const r = box.getBoundingClientRect(),
+    s = work.getBoundingClientRect();
+  css("--fl", clamp(r.left - s.left, 0, Math.max(0, s.width - r.width)) + "px");
+  css("--ft", clamp(r.top - s.top, 0, Math.max(0, s.height - r.height)) + "px");
+});
 
 /* ---------- synced player: YouTube (IFrame API) or direct video ---------- */
-const vid = $("#vid");
 let yt,
   cur = null,
   mute = false,
@@ -472,25 +461,15 @@ $("#file").onchange = (e) => {
 vid.onplay = () => !mute && send({ t: "play", time: vid.currentTime });
 vid.onpause = () => !mute && send({ t: "pause", time: vid.currentTime });
 vid.onseeked = () => !mute && send({ t: "seek", time: vid.currentTime });
+vid.onerror = () => {
+  if (vid.getAttribute("src"))
+    toast(
+      "Can't play this link. Use a YouTube link or a direct .mp4 / .webm link.",
+    );
+};
 
-function recv(m) {
-  if (m.t === "fx") return burst(m.e);
-  watching(true);
-  quiet(() => {
-    if (m.t === "load") loadMedia(m.k, m.v, m.time, m.playing);
-    if (m.time != null && cur && Math.abs(P.time() - m.time) > 1.5)
-      P.seek(m.time);
-    if (m.t === "pause" || (m.t === "load" && !m.playing)) P.pause();
-    if (m.t === "play" || (m.t === "load" && m.playing)) P.play();
-  });
-}
-
-/* ---------- v0.4: paste fixes, Esc to exit theater, clearer errors ---------- */
+/* paste helpers */
 const urlIn = $("#url");
-urlIn.removeAttribute("readonly");
-urlIn.removeAttribute("disabled");
-
-// 1) A real Paste button (works even if Ctrl/Cmd+V is intercepted)
 $("#pastebtn").onclick = async () => {
   try {
     urlIn.value = (await navigator.clipboard.readText()).trim();
@@ -500,8 +479,8 @@ $("#pastebtn").onclick = async () => {
     toast("Allow clipboard access, or press Ctrl/Cmd+V in the box");
   }
 };
-// 2) If focus is on the page (not in a field), Ctrl/Cmd+V still fills the link box
 document.addEventListener("paste", (e) => {
+  // Ctrl/Cmd+V works even when focus is elsewhere on the page
   if (
     /^(INPUT|TEXTAREA)$/.test(e.target.tagName) ||
     !document.body.classList.contains("watching")
@@ -514,18 +493,19 @@ document.addEventListener("paste", (e) => {
     e.preventDefault();
   }
 });
-// 3) A click always puts the cursor in the box (the video call iframe can hold focus)
 urlIn.addEventListener("pointerdown", () => setTimeout(() => urlIn.focus(), 0));
 
-// Esc exits theater
-addEventListener("keydown", (e) => {
-  if (e.key === "Escape") theater(false);
-});
+function recv(m) {
+  if (m.t === "fx") return burst(m.e);
+  watching(true); // when anyone starts a video, everyone's view switches to the player
+  quiet(() => {
+    if (m.t === "load") loadMedia(m.k, m.v, m.time, m.playing);
+    if (m.time != null && cur && Math.abs(P.time() - m.time) > 1.5)
+      P.seek(m.time);
+    if (m.t === "pause" || (m.t === "load" && !m.playing)) P.pause();
+    if (m.t === "play" || (m.t === "load" && m.playing)) P.play();
+  });
+}
 
-// Tell people when a link isn't playable
-vid.addEventListener("error", () => {
-  if (vid.getAttribute("src"))
-    toast(
-      "Can't play this link. Use a YouTube link or a direct .mp4 / .webm link.",
-    );
-});
+/* start last, after everything above is defined */
+if ($("#gname").value) start($("#gname").value);
