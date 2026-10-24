@@ -1,15 +1,82 @@
 const $ = (s) => document.querySelector(s);
+
+/* ---------- safety net: visible errors, loop breaker, no auto-navigation ---------- */
+function overlay(title, body, extra = "") {
+  const d = document.createElement("div");
+  d.style.cssText =
+    "position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#15121f;color:#f4effc;padding:1rem;text-align:center;font-family:inherit";
+  d.innerHTML = `<div style="max-width:440px;display:grid;gap:.8rem"><h2 style="margin:0"></h2><p style="margin:0;color:#a69cc2"></p><div style="display:flex;gap:.6rem;justify-content:center">${extra}</div></div>`;
+  d.querySelector("h2").textContent = title;
+  d.querySelector("p").textContent = body;
+  document.body.append(d);
+  return d;
+}
+const fatal = (t, b) => {
+  overlay(t, b, '<a class="btn ghost" href="/">Home</a>');
+  throw new Error(t);
+};
+let errShown = false;
+const report = (m) => {
+  if (errShown) return;
+  errShown = true;
+  const b = document.createElement("div");
+  b.style.cssText =
+    "position:fixed;left:0;right:0;bottom:0;z-index:99;background:#e5484d;color:#fff;padding:.5rem .8rem;font:13px/1.4 ui-monospace,Menlo,monospace";
+  b.textContent = `Error: ${m} (send a screenshot of this)`;
+  document.body.append(b);
+};
+addEventListener("error", (e) => report(e.message));
+addEventListener("unhandledrejection", (e) => report(String(e.reason)));
+
+// Stop if this page keeps reloading (more than 4 loads in 15 seconds)
+try {
+  const k = "cc-loads",
+    n = Date.now(),
+    a = JSON.parse(sessionStorage.getItem(k) || "[]").filter(
+      (t) => n - t < 15000,
+    );
+  a.push(n);
+  sessionStorage.setItem(k, JSON.stringify(a));
+  if (a.length > 4)
+    fatal(
+      "Stopped a reload loop",
+      "This page reloaded repeatedly, so it was paused. Wait a few seconds, then go Home and try again.",
+    );
+} catch (e) {
+  if (e.message === "Stopped a reload loop") throw e;
+}
+
+// Stop if room.html is older than this script
+if (
+  ![
+    "jframe",
+    "code",
+    "chatb",
+    "player",
+    "jitsi",
+    "cf",
+    "emo",
+    "msgs",
+    "ci",
+  ].every((id) => $("#" + id))
+)
+  fatal(
+    "room.html is outdated",
+    "Replace room.html with the latest version so it matches room.js.",
+  );
+
 const q = new URLSearchParams(location.search);
 const room = (q.get("r") || "").toLowerCase(),
   mode = q.get("m") || "c";
-if (!/^[a-z0-9-]{3,60}$/.test(room)) location.replace("/");
+if (!/^[a-z0-9-]{3,60}$/.test(room))
+  fatal("Invalid room code", "Go Home and create or join a room.");
+
 let api,
   me,
-  myName = "",
   tile = true,
   lite = false,
   unread = 0,
-  starting = false;
+  started = false;
 $("#rn").textContent = room;
 document.title = `${room} · Couchcall`;
 
@@ -41,9 +108,8 @@ const fail = (m) => {
 };
 
 async function start(name) {
-  if (!name || starting || api) return;
-  starting = true;
-  myName = name;
+  if (!name || started) return;
+  started = true;
   localStorage.setItem("name", name);
   $("#gate").hidden = true;
   $("#app").hidden = false;
@@ -101,7 +167,19 @@ function init(d) {
       MOBILE_APP_PROMO: false,
     },
   });
-  api.addListener("readyToClose", () => (location.href = "/?left=1"));
+  // Never navigate automatically: dispose the embed and show a "left" screen instead
+  api.addListener("readyToClose", () => {
+    try {
+      api.dispose();
+    } catch {}
+    api = null;
+    const o = overlay(
+      "You left the room",
+      "Rejoin the same room or start a new one.",
+      '<button class="btn" id="rj">Rejoin</button><a class="btn ghost" href="/">Home</a>',
+    );
+    o.querySelector("#rj").onclick = () => location.reload();
+  });
   api.addListener("tileViewChanged", (e) => (tile = e.enabled));
   api.addListener("videoConferenceJoined", (e) => {
     me = e.id;
@@ -225,7 +303,7 @@ $("#jmin").onclick = () => {
 const EMOJI =
   "😀😂🤣😍😎🥳😭😅😜🤔🙄😴🤯😱😡🥺👍👎👏🙌🙏💪🤝👀🔥💯❤️💔🎉🎮🍿🎬🏆💀👻🤡🍕🍔🍻☕🌈⭐🚀".match(
     /\p{Extended_Pictographic}(?:\uFE0F)?/gu,
-  );
+  ) || [];
 $("#emo").innerHTML = EMOJI.map(
   (e) => `<button type="button">${e}</button>`,
 ).join("");
