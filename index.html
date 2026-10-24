@@ -3,58 +3,139 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Couchcall – game nights and movie nights</title>
-    <meta
-      name="description"
-      content="Instant video rooms for game nights and movie nights. No signup."
-    />
+    <title>Couchcall room</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🛋️%3C/text%3E%3C/svg%3E"
     />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
-  <body class="home">
-    <main class="card">
-      <h1>🛋️ Couchcall</h1>
-      <p class="sub">
-        Instant rooms for game nights and movie nights. No signup.
-      </p>
+  <body class="room">
+    <form id="gate">
+      <h2>Almost in 👋</h2>
       <input
-        id="name"
+        id="gname"
         placeholder="Your name"
         maxlength="40"
-        autocomplete="nickname"
+        required
         aria-label="Your name"
-      />
-      <div class="modes">
-        <label
-          ><input type="radio" name="m" value="g" checked /><span
-            >🎮<b>Game night</b><i>Lean video, voice first</i></span
-          ></label
-        >
-        <label
-          ><input type="radio" name="m" value="m" /><span
-            >🍿<b>Movie night</b><i>Big screen, synced player</i></span
-          ></label
-        >
-        <label
-          ><input type="radio" name="m" value="c" /><span
-            >💬<b>Just hang</b><i>Plain room</i></span
-          ></label
-        >
-      </div>
-      <button id="create" class="btn">Create room</button>
-      <div class="or">or join a friend's room</div>
-      <form id="join">
-        <input
-          id="code"
-          placeholder="Room code or link"
-          aria-label="Room code or link"
-        /><button class="btn ghost">Join</button>
-      </form>
-    </main>
-    <div id="toast" hidden></div>
-    <script type="module" src="/js/app.js"></script>
+      /><button class="btn">Join room</button>
+    </form>
+
+    <div id="app" hidden>
+      <header id="bar">
+        <a class="logo" href="/" title="Home">🛋️ Couchcall</a>
+        <button class="chip code" id="code" title="Copy room code">
+          <span id="rn"></span> 📋
+        </button>
+        <button class="chip" id="copy" title="Copy invite link">
+          🔗 Invite
+        </button>
+        <button class="chip" id="layout" title="Tile / focus view">
+          ▦ Layout
+        </button>
+        <button class="chip" id="theater" title="Hide the toolbar">
+          🎬 Theater
+        </button>
+        <button class="chip" id="lite" title="Lower video quality">
+          🐢 Lite
+        </button>
+        <button class="chip" id="watch" title="Synced video player">
+          🍿 Watch
+        </button>
+        <button class="chip" id="chatb" title="Chat">
+          💬 Chat <b id="unread" hidden>0</b>
+        </button>
+        <button class="chip fxb" data-e="🎉">🎉</button
+        ><button class="chip fxb" data-e="😂">😂</button
+        ><button class="chip fxb" data-e="🔥">🔥</button>
+        <button class="chip danger" id="leave">Leave</button>
+      </header>
+
+      <main id="stage">
+        <section id="player">
+          <div class="pbar">
+            <input
+              id="url"
+              placeholder="Paste a YouTube link or a direct video link (.mp4, .webm)"
+              aria-label="Video link"
+              autocomplete="off"
+            />
+            <button
+              class="btn ghost"
+              id="pastebtn"
+              type="button"
+              title="Paste from clipboard"
+            >
+              📋 Paste
+            </button>
+            <button class="btn" id="load" type="button">Load</button>
+            <button
+              class="chip"
+              id="exit"
+              type="button"
+              hidden
+              title="Show the toolbar again (Esc)"
+            >
+              ✕ Exit theater
+            </button>
+            <label
+              class="btn ghost"
+              for="file"
+              title="Everyone opens the same file on their own device"
+              >📁 Local file</label
+            >
+            <input id="file" type="file" accept="video/*" hidden />
+          </div>
+          <div id="screen">
+            <p id="empty">
+              Load a YouTube link or direct video URL to watch together.
+            </p>
+            <div id="ytwrap" hidden><div id="yt"></div></div>
+            <video id="vid" controls playsinline hidden></video>
+          </div>
+          <small id="note"
+            >Local files play from each person's device. Use only content you
+            have permission to watch.</small
+          >
+        </section>
+
+        <div id="jitsi">
+          <div id="jhead">
+            <span>👥 Video call <i>Drag to move</i></span
+            ><button class="chip" id="jmin" type="button" title="Minimize">
+              –
+            </button>
+          </div>
+          <div id="jframe"></div>
+          <div id="grip" title="Resize"></div>
+        </div>
+
+        <aside id="chat" hidden>
+          <header>
+            <b>💬 Chat</b
+            ><button class="chip" id="cx" type="button" aria-label="Close chat">
+              ✕
+            </button>
+          </header>
+          <div id="msgs" role="log" aria-live="polite">
+            <p class="hint">Say hi 👋 Messages vanish when everyone leaves.</p>
+          </div>
+          <div id="emo" hidden></div>
+          <form id="cf">
+            <button type="button" class="chip" id="eb" aria-label="Emoji">
+              😊</button
+            ><input
+              id="ci"
+              placeholder="Type a message…"
+              maxlength="500"
+              autocomplete="off"
+            /><button class="btn">Send</button>
+          </form>
+        </aside>
+      </main>
+      <div id="toast" hidden></div>
+    </div>
+    <script type="module" src="/js/room.js"></script>
   </body>
 </html>

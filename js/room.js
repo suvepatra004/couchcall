@@ -484,3 +484,48 @@ function recv(m) {
     if (m.t === "play" || (m.t === "load" && m.playing)) P.play();
   });
 }
+
+/* ---------- v0.4: paste fixes, Esc to exit theater, clearer errors ---------- */
+const urlIn = $("#url");
+urlIn.removeAttribute("readonly");
+urlIn.removeAttribute("disabled");
+
+// 1) A real Paste button (works even if Ctrl/Cmd+V is intercepted)
+$("#pastebtn").onclick = async () => {
+  try {
+    urlIn.value = (await navigator.clipboard.readText()).trim();
+    urlIn.focus();
+  } catch {
+    urlIn.focus();
+    toast("Allow clipboard access, or press Ctrl/Cmd+V in the box");
+  }
+};
+// 2) If focus is on the page (not in a field), Ctrl/Cmd+V still fills the link box
+document.addEventListener("paste", (e) => {
+  if (
+    /^(INPUT|TEXTAREA)$/.test(e.target.tagName) ||
+    !document.body.classList.contains("watching")
+  )
+    return;
+  const s = e.clipboardData?.getData("text")?.trim();
+  if (s) {
+    urlIn.value = s;
+    urlIn.focus();
+    e.preventDefault();
+  }
+});
+// 3) A click always puts the cursor in the box (the video call iframe can hold focus)
+urlIn.addEventListener("pointerdown", () => setTimeout(() => urlIn.focus(), 0));
+
+// Esc exits theater
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape") theater(false);
+});
+
+// Tell people when a link isn't playable
+vid.addEventListener("error", () => {
+  if (vid.getAttribute("src"))
+    toast(
+      "Can't play this link. Use a YouTube link or a direct .mp4 / .webm link.",
+    );
+});
